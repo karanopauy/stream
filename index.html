@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SONIC</title>
+    <link rel="shortcut icon" href="./src/play.svg" type="image/x-icon">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@700;800&display=swap"
+        rel="stylesheet">
+     <script src="./src/style.js"></script>
+</head>
+
+<body>
+
+    <div class="ambient-bg">
+        <div class="blob"></div>
+    </div>
+
+    <audio id="audio_engine" crossorigin="anonymous"></audio>
+
+    <nav class="nav-bar glass-panel">
+        <div class="brand">
+            <img src="./src/actor.png" class="logo-img">
+            <span class="app-name">SONIC</span>
+        </div>
+        <div style="gap: 1.5rem;">
+            <button onclick="toggleLyrics()" class="glass-panel"
+                style="padding: 10px 20px; color: white; cursor: pointer; border-radius: 30px;">Lyrics Mode</button>
+            <button onclick="refreshRenderSongs()" class="glass-panel"
+                style="padding: 10px 20px; color: white; cursor: pointer; border-radius: 30px;">Home</button>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <aside class="sidebar pane glass-panel">
+            <div class="pane-header">
+                <h2 class="pane-title">Artists</h2>
+                <input type="text" placeholder="Search artists..." class="search-input"
+                    oninput="handleSearch('artist', this.value)">
+            </div>
+            <div id="artist_list" class="scroll-area"></div>
+        </aside>
+
+        <section class="library pane glass-panel">
+            <div class="pane-header">
+                <h2 class="pane-title">Library</h2>
+                <input type="text" placeholder="Search songs..." class="search-input"
+                    oninput="handleSearch('song', this.value)">
+            </div>
+            <div id="song_list" class="scroll-area"></div>
+        </section>
+    </main>
+
+    <footer class="player-bar glass-panel">
+        <div class="player-info">
+            <img src="./src/actor.png" id="p_thumb" class="player-thumb" crossorigin="anonymous">
+            <div>
+                <span id="p_title" class="song-name">Select a track</span>
+                <span id="p_artist" class="artist-name">Artist</span>
+            </div>
+        </div>
+
+        <div class="controls-wrapper">
+            <div class="main-controls">
+            <img src="./src/shuffle.svg" alt="shuffle" id="shuffle_icon" class="control-icon" onclick="">
+                <img src="./src/left.svg" id="previous_icon" class="control-icon">
+                <span class="loader" id="player_loader_icon"></span>
+                <img src="./src/play.svg" id="play_icon" class="control-icon" onclick="togglePlay()">
+                <img src="./src/pause.svg" id="pause_icon" class="control-icon" style="display:none"
+                    onclick="togglePlay()">
+                <img src="./src/right.svg" id="next_icon" class="control-icon">
+            <img src="./src/repeat.svg" alt="repeat" id="repeat_icon" class="control-icon" onclick="">
+            </div>
+            <div class="progress-container">
+                <span class="time-text" id="time_cur">0:00</span>
+                <div class="progress-rail" id="prog_rail">
+                    <div class="progress-fill" id="prog_fill"></div>
+                </div>
+                <span class="time-text" id="time_total">0:00</span>
+            </div>
+        </div>
+
+        <div class="bottom_right_sub_container" style="text-align: right; font-size: 0.7rem; opacity: 0.4;">
+            <p>Download Status <br> Total Downloaded in this session: <span id="total_down_this_session">0 MB</span> <br> Total: <span id="total_down_size"></span> <br> Downloaded: <span id="current_down_size"></span></p>
+        </div>
+    </footer>
+
+    <div class="lyrics-overlay" id="lyrics_modal" onclick="closeLyrics(event)">
+        <div class="lyrics-scroller" id="lyrics_content">
+            <div class="lyrics-line" style="text-align: center; margin-top: 20vh;">No lyrics loaded</div>
+        </div>
+    </div>
+    <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
+    <script src="./src/main.js"></script>
+</body>
+
+</html>
