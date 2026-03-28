@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@700;800&display=swap"
         rel="stylesheet">
-     <script src="./src/style.js"></script>
+    <script src="./src/style.js"></script>
 </head>
 
 <body>
@@ -65,26 +65,27 @@
 
         <div class="controls-wrapper">
             <div class="main-controls">
-            <img src="./src/shuffle.svg" alt="shuffle" id="shuffle_icon" class="control-icon" onclick="">
+                <img src="./src/shuffle.svg" alt="shuffle" id="shuffle_icon" class="control-icon" onclick="">
                 <img src="./src/left.svg" id="previous_icon" class="control-icon">
                 <span class="loader" id="player_loader_icon"></span>
                 <img src="./src/play.svg" id="play_icon" class="control-icon" onclick="togglePlay()">
                 <img src="./src/pause.svg" id="pause_icon" class="control-icon" style="display:none"
                     onclick="togglePlay()">
                 <img src="./src/right.svg" id="next_icon" class="control-icon">
-            <img src="./src/repeat.svg" alt="repeat" id="repeat_icon" class="control-icon" onclick="">
+                <img src="./src/repeat.svg" alt="repeat" id="repeat_icon" class="control-icon" onclick="">
             </div>
             <div class="progress-container">
-                <span class="time-text" id="time_cur">0:00</span>
+                <span class="time-text" id="time_cur">00:00</span>
                 <div class="progress-rail" id="prog_rail">
                     <div class="progress-fill" id="prog_fill"></div>
                 </div>
-                <span class="time-text" id="time_total">0:00</span>
+                <span class="time-text" id="time_total">00:00</span>
             </div>
         </div>
 
         <div class="bottom_right_sub_container" style="text-align: right; font-size: 0.7rem; opacity: 0.4;">
-            <p>Download Status <br> Total Downloaded in this session: <span id="total_down_this_session">0 MB</span> <br> Total: <span id="total_down_size"></span> <br> Downloaded: <span id="current_down_size"></span></p>
+            <p>Download Status <br> Total Downloaded in this session: <span id="total_down_this_session">0 MB</span>
+                <br> Total: <span id="total_down_size"></span> <br> Downloaded: <span id="current_down_size"></span></p>
         </div>
     </footer>
 
