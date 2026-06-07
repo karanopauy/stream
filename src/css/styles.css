@@ -1,0 +1,920 @@
+/* ============================================================
+   STOIC PLAY — styles.css
+   Structure:
+     1. Imports (font)
+     2. Reset & global tokens
+     3. Animated background
+     4. Base typography / links
+     5. Layout — main container
+     6. Navigation
+     7. Music grid
+     8. Cover-art card
+     9. Active / playing state
+    10. Search panel
+    11. Lyrics view
+    12. Media player popup
+    13. Utilities
+    14. Responsive — Tablet   (≥ 600px)
+    15. Responsive — Laptop+  (≥ 1024px)
+   ============================================================ */
+
+
+/* ────────────────────────────────────────────────────────────
+   1. IMPORTS
+   ──────────────────────────────────────────────────────────── */
+@import url("./font.css");
+
+
+/* ────────────────────────────────────────────────────────────
+   2. RESET & GLOBAL TOKENS
+   ──────────────────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  scrollbar-width: none;       /* Firefox */
+  user-select: none;
+}
+
+::-webkit-scrollbar { display: none; }
+
+:root {
+  /* Dynamic palette — overridden by ColorThief on track change */
+  --color-1: #000000;
+  --color-2: #000000;
+  --color-3: #000000;
+  --angle:   0deg;
+
+  /* Static design tokens */
+  --accent:        #a600ff;
+  --accent-play:   rgb(183, 0, 255);
+  --white:         #ffffff;
+  --subtext:       #bebaba;
+  --glass-bg:      rgba(255, 255, 255, 0.05);
+  --glass-bg-mid:  rgba(255, 255, 255, 0.167);
+  --glass-border:  rgba(255, 255, 255, 0.3);
+  --glass-shadow:  rgba(255, 255, 255, 0.1);
+  --active-nav-bg: rgba(255, 255, 255, 0.107);
+
+  --radius-sm:  0.5rem;
+  --radius-md:  1rem;
+  --radius-lg:  2rem;
+  --radius-pill: 5rem;
+}
+
+html,
+body {
+  overflow: hidden;
+  height: 100dvh;
+}
+
+body {
+  font-family: "SF-Pro", sans-serif;
+  background: #000;
+  color: var(--white);
+  transition: background 0.5s ease-in-out;
+  position: relative;
+}
+
+
+/* ────────────────────────────────────────────────────────────
+   3. ANIMATED BACKGROUND  (3 offset blob layers — no ghost lines)
+   Each blob is a real div so we get 3 independent animations
+   without the `inset` / position conflict of a single pseudo-element.
+   All blobs use mix-blend-mode: screen so colours add rather than
+   compete — zero harsh edges.
+   ──────────────────────────────────────────────────────────── */
+
+.bg_blob {
+  position: fixed;
+  top:  -80%;
+  left: -80%;
+  width:  260%;
+  height: 260%;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: -1;
+  will-change: transform, opacity;
+  mix-blend-mode: screen;
+}
+
+/* Blob A — primary palette (color-1, color-2, color-3) slow clockwise */
+.bg_blob_a {
+  background: conic-gradient(
+    from 0deg at 40% 45%,
+    var(--color-1),
+    var(--color-3),
+    var(--color-2),
+    transparent,
+    var(--color-1)
+  );
+  filter: blur(80px);
+  opacity: 0.45;
+  animation: blob_a 18s ease-in-out infinite alternate;
+  transform-origin: 55% 55%;
+}
+
+/* Blob B — accent palette (color-4, color-5) counter-clockwise, offset */
+.bg_blob_b {
+  background: conic-gradient(
+    from 120deg at 65% 60%,
+    var(--color-4),
+    transparent,
+    var(--color-5),
+    transparent,
+    var(--color-4)
+  );
+  filter: blur(110px);
+  opacity: 0.35;
+  animation: blob_b 24s ease-in-out infinite alternate;
+  transform-origin: 35% 45%;
+}
+
+/* Blob C — deep shadow layer (color-2, color-4) very slow, large */
+.bg_blob_c {
+  background: conic-gradient(
+    from 240deg at 50% 35%,
+    transparent,
+    var(--color-2),
+    transparent,
+    var(--color-4),
+    transparent
+  );
+  filter: blur(140px);
+  opacity: 0.28;
+  animation: blob_c 32s ease-in-out infinite alternate;
+  transform-origin: 50% 60%;
+}
+
+@keyframes blob_a {
+  0%   { transform: rotate(0deg)   scale(0.80) translate(-3%, -3%); }
+  33%  { transform: rotate(130deg) scale(1.00) translate( 2%,  1%); }
+  66%  { transform: rotate(220deg) scale(1.10) translate(-1%,  3%); }
+  100% { transform: rotate(360deg) scale(0.90) translate( 3%, -2%); }
+}
+
+@keyframes blob_b {
+  0%   { transform: rotate(0deg)   scale(1.10) translate( 4%,  2%); }
+  33%  { transform: rotate(-100deg) scale(0.90) translate(-2%, -3%); }
+  66%  { transform: rotate(-200deg) scale(1.05) translate( 1%,  4%); }
+  100% { transform: rotate(-360deg) scale(0.85) translate(-4%,  1%); }
+}
+
+@keyframes blob_c {
+  0%   { transform: rotate(0deg)   scale(0.95) translate( 1%, -4%); }
+  50%  { transform: rotate(180deg) scale(1.15) translate(-3%,  2%); }
+  100% { transform: rotate(360deg) scale(1.00) translate( 2%,  3%); }
+}
+
+
+/* ────────────────────────────────────────────────────────────
+   4. BASE TYPOGRAPHY / LINKS
+   ──────────────────────────────────────────────────────────── */
+a {
+  all: unset;
+  cursor: pointer;
+  color: var(--white);
+  transition: all 0.3s ease-in;
+}
+
+
+/* ────────────────────────────────────────────────────────────
+   5. LAYOUT — MAIN CONTAINER  (mobile-first: column flex)
+   ──────────────────────────────────────────────────────────── */
+.main_container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  will-change: auto;
+}
+
+
+/* ────────────────────────────────────────────────────────────
+   6. NAVIGATION
+   ──────────────────────────────────────────────────────────── */
+.main_nav_container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px;
+  margin: 1rem 1rem 0;
+  font-size: 1rem;
+  background: var(--glass-bg);
+  backdrop-filter: blur(0.3rem);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 0 1px var(--glass-shadow);
+}
+
+.nav_cont_header { display: flex; align-items: center; }
+
+.nav_cont_header > a {
+  font-weight: 900;
+  letter-spacing: 5px;
+}
+.nav_cont_header > a:hover {
+  color: var(--accent);
+  transition: all 0.3s ease-in-out;
+}
+
+.nav_menus {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 1rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.nav_menus > a {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 10px 20px;
+  background-color: transparent;
+  border-radius: 10px;
+}
+
+.nav_menus > .active_menu {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Hide text labels on mobile — only icons */
+.nav_label { display: none; }
+
+
+/* ────────────────────────────────────────────────────────────
+   7. MUSIC GRID  (mobile)
+   ──────────────────────────────────────────────────────────── */
+.main_music_section {
+  padding: 0.3rem;
+  height: 85dvh;
+  color: var(--white);
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 1rem;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  justify-content: center;
+  background-color: transparent;
+}
+
+
+/* ────────────────────────────────────────────────────────────
+   8. COVER-ART CARD
+   ──────────────────────────────────────────────────────────── */
+.music_section_block {
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  gap: 2px;
+  width: 70px;
+  height: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.image_container {
+  overflow: hidden;
+  position: relative;
+  width: 70px;
+}
+
+/* Hidden overlay (play / dots) — shown on hover via JS if needed */
+.image_container > .image_top {
+  position: absolute;
+  padding: 10px;
+  display: none;
+  justify-content: space-between;
+}
+
+.img_top_play:hover,
+.img_top_dots:hover { color: var(--accent); }
+
+.cover_art {
+  width: 70px;
+  border-radius: var(--radius-sm);
+  border: solid #8a8a8a 0.1rem;
+  transition: all 0.3s ease-in-out;
+  box-shadow: 10px 5px 5px transparent;
+  overflow: hidden;
+  display: block;
+}
+
+.cover_art:hover { box-shadow: 10px 5px 5px rgba(255,255,255,0.3); }
+
+.title {
+  font-size: 0.5rem;
+  letter-spacing: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.artist {
+  font-size: 0.3rem;
+  letter-spacing: 2px;
+  color: var(--subtext);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.title:hover,
+.artist:hover { text-decoration: underline; }
+
+
+/* ────────────────────────────────────────────────────────────
+   9. ACTIVE / NOW-PLAYING STATE  (spinning vinyl overlay)
+   ──────────────────────────────────────────────────────────── */
+.image_container.active img {
+  filter: blur(0.2rem);
+  transition: filter 0.3s ease;
+}
+
+.image_container.active {
+  --var-1: rotate;
+  border-radius: var(--radius-sm);
+}
+
+/* Spinning vinyl disc overlay */
+.image_container.active::after {
+  content: "";
+  position: absolute;
+  top: 9%; left: 9%;
+  width: 80%; height: 75%;
+  background: url("../img/play.png") no-repeat center center / 8rem;
+  border-radius: 999rem;
+  pointer-events: none;
+  z-index: 10;
+  animation: var(--var-1) 2s linear infinite;
+  will-change: transform;
+}
+
+@keyframes rotate {
+  from { transform: rotate3d(0, 0, 1,   0deg); }
+  to   { transform: rotate3d(0, 0, 1, 360deg); }
+}
+
+
+/* ────────────────────────────────────────────────────────────
+   10. SEARCH PANEL  (mobile)
+   ──────────────────────────────────────────────────────────── */
+.search_container {
+  display: none;               /* toggled to flex by JS */
+  flex-direction: column;
+  gap: 1rem;
+  flex-wrap: wrap;
+  height: 85dvh;
+  padding: 20px;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  color: var(--white);
+  background-color: transparent;
+}
+
+.search_music_container {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 1rem;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  color: var(--white);
+  background-color: transparent;
+}
+
+.input_box_cont {
+  display: flex;
+  justify-content: center;
+}
+
+.input_box_cont > input {
+  all: unset;
+  padding: 15px 20px;
+  height: 10px;
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(0.5rem);
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  font-size: 0.8rem;
+  width: 250px;
+  color: var(--white);
+}
+
+.input_box_cont > input::placeholder { color: #a2a2a2; }
+
+
+/* ────────────────────────────────────────────────────────────
+   11. LYRICS VIEW
+   ──────────────────────────────────────────────────────────── */
+.main_lyrics_container {
+  display: none;               /* toggled to flex by JS */
+  height: 98.5dvh;
+  width: 99dvw;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  padding: 1rem;
+  will-change: auto;
+}
+
+.lyrics_container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+  height: 75dvh;
+  overflow: scroll;
+  flex-wrap: nowrap;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  font-weight: 900;
+  scroll-behavior: smooth;
+  font-family:
+    system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+}
+
+.lyrics_container > section { cursor: pointer; }
+
+/* Syllable states */
+.lyrics_container .active_lrc {
+  color: var(--white);
+  transition: all 0.2s;
+}
+
+.lyrics_container .inactive_lrc {
+  color: rgba(255,255,255,0.125);
+  filter: blur(0.1rem);
+  transition: all 0.5s;
+}
+
+/* Line states */
+.lyrics_container .inactive_line > span {
+  color: rgba(255,255,255,0.03);
+  font-size: 0.9rem;
+  filter: blur(0.1rem);
+  transition: all 0.5s;
+}
+
+.lyrics_container .inactive_line:hover > span {
+  color: rgba(255,255,255,0.31);
+  font-size: 1.2rem;
+}
+
+.lyrics_container .inactive_line_hover > span {
+  color: rgba(255,255,255,0.5);
+  font-size: 1.5rem;
+}
+
+.lyrics_container .active_line > span {
+  font-size: 1.2rem;          /* mobile size — overridden at larger breakpoints */
+  transition: all 0.2s;
+}
+
+
+/* ────────────────────────────────────────────────────────────
+   12. MEDIA PLAYER POPUP  (mobile — pill shape, bottom-center)
+   ──────────────────────────────────────────────────────────── */
+.center_media_popup {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100dvw;
+  color: var(--white);
+  position: fixed;
+  z-index: 100;
+  overflow: hidden;
+}
+
+.media_player_popup {
+  position: fixed;
+  margin-top: -8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  justify-content: space-between;
+  align-items: center;
+  width: 350px;
+  padding: 10px 50px;
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  background: var(--glass-bg-mid);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 0 1px var(--glass-shadow);
+  backdrop-filter: blur(0.5rem);
+  z-index: 10;
+  transform: translateZ(0);
+}
+
+/* ── Cover + track info (top row on mobile) ── */
+.popup_left {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 100%;
+}
+
+.popup_left > p {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  overflow: hidden;
+}
+
+.popup_left img {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+}
+
+.top_text {
+  font-size: 0.8rem;
+  letter-spacing: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sub_text {
+  font-size: 0.5rem;
+  letter-spacing: 2px;
+  color: var(--subtext);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Controls middle row ── */
+.popup_middle {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: row;
+  gap: 5px;
+  min-width: 100px;
+  margin-top: -15px;
+}
+
+.play_pause_shit {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+}
+
+.play_pause_shit > p {
+  width: 20px;
+  cursor: pointer;
+}
+
+/* Inline progress bar (mobile, inside play_pause_shit) */
+.progress_whole {
+  width: 120px;
+  height: 2px;
+  background-color: rgba(255,255,255,0.2);
+  cursor: pointer;
+}
+
+.progress_show {
+  height: 2px;
+  width: 0%;
+  background-color: var(--white);
+}
+
+/* Wide progress bar — hidden on mobile, shown on tablet/laptop */
+.progress_whole_wide {
+  display: none;
+  width: 200px;
+  height: 2px;
+  background-color: rgba(255,255,255,0.2);
+  cursor: pointer;
+}
+
+.progress_show_wide {
+  height: 2px;
+  width: 0%;
+  background-color: var(--white);
+}
+
+/* Time display — mobile: own row between cover art and controls */
+.time_show_mobile {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.time_show_mobile > span {
+  font-size: 0.5rem;
+  color: var(--subtext);
+}
+
+/* Time display — tablet/laptop: inside popup_middle column, hidden on mobile */
+.time_show_wide { display: none; }
+
+.time_show_wide > span {
+  font-size: 0.7rem;
+  color: var(--subtext);
+}
+
+/* Play / pause toggle */
+.pause { display: none; }
+
+/* ── Loading indicator ── */
+.popup_loader {
+  display: none;               /* shown via JS when buffering */
+  position: absolute;
+  inset: 0;
+  justify-content: center;
+  align-items: center;
+  border-radius: inherit;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(0.2rem);
+  z-index: 20;
+  pointer-events: none;
+}
+
+.popup_loader.visible { display: flex; }
+
+.loader_ring {
+  width: 28px;
+  height: 28px;
+  border: 2.5px solid rgba(255, 255, 255, 0.15);
+  border-top-color: var(--white);
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Desktop-only lyrics button in popup_right — hidden on mobile */
+.popup_right { display: none; }
+
+
+/* ────────────────────────────────────────────────────────────
+   13. UTILITIES
+   ──────────────────────────────────────────────────────────── */
+@keyframes breathe {
+  0%,100% { background-position: 0%   50%; }
+  50%      { background-position: 100% 50%; }
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   14. RESPONSIVE — TABLET  (≥ 600px)
+   ════════════════════════════════════════════════════════════ */
+@media (min-width: 600px) {
+
+  /* ── Navigation ── */
+  .main_nav_container {
+    padding: 20px 20px 20px 50px;
+    margin: 1rem;
+    font-size: 1.4rem;
+  }
+
+  .nav_label { display: inline; }   /* show "Search" / "Home" text */
+
+  /* ── Music grid ── */
+  .main_music_section {
+    padding: 20px;
+    margin: 0 1rem;
+    height: 70dvh;
+    gap: 1.3rem;
+    align-items: center;
+  }
+
+  .music_section_block {
+    gap: 5px;
+    width: 150px;
+    height: 220px;
+  }
+
+  .image_container { width: 200px; }
+
+  .image_container > .image_top { width: 60px; }
+
+  .image_container.active::after {
+    top: 2%; left: -12%;
+    width: 100%; height: 100%;
+    border-radius: 0;
+  }
+
+  .cover_art {
+    width: 150px;
+    border-radius: var(--radius-md);
+  }
+
+  .title  { font-size: 1rem; }
+  .artist { font-size: 0.8rem; }
+
+  /* ── Search ── */
+  .search_container {
+    margin-bottom: 20px;
+    height: 70dvh;
+    gap: 40px;
+    flex-direction: column !important;
+    padding: 0;
+  }
+
+  .search_music_container {
+    padding: 0 50px;
+    max-height: 50dvh;
+    gap: 20px;
+    justify-content: center;
+  }
+
+  .input_box_cont > input { width: 600px; }
+
+  /* ── Lyrics ── */
+  .lyrics_container .active_line > span { font-size: 1.9rem; }
+
+  /* ── Media popup — horizontal layout ── */
+  .media_player_popup {
+    flex-direction: row;
+    margin-top: -6rem;
+    padding: 10px 20px;
+    border-radius: var(--radius-lg);
+    width: 700px;
+    gap: 0;
+  }
+
+  /* Hide mobile stacked layout pieces */
+  .popup_left {
+    width: 195px;
+    justify-content: flex-start;
+  }
+
+  .popup_left img { width: 50px; height: 50px; }
+
+  .top_text { font-size: 1rem; }
+  .sub_text  { font-size: 0.8rem; }
+
+  .popup_middle {
+    flex-direction: column;
+    gap: 10px;
+    min-width: 200px;
+    margin-top: 0;
+    margin-left: -5rem;
+  }
+
+  /* Inline progress hidden; wide progress shown */
+  .progress_whole      { display: none; }
+  .progress_whole_wide {
+    display: block;
+    width: 200px;
+  }
+
+  .play_pause_shit { gap: 2rem; }
+
+  .time_show > span { font-size: 0.7rem; }
+
+  /* Time display — swap mobile row for wide inline version */
+  .time_show_mobile { display: none; }
+  .time_show_wide   { display: block; }
+
+  /* Lyrics button lives in popup_right on tablet+ */
+  .popup_right {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    width: 50px;
+  }
+
+  .popup_right > p { cursor: pointer; }
+
+  /* Hide inline lyrics button (inside play_pause_shit) on tablet+ */
+  #lyrics_button { display: none; }
+
+}
+/* ── END tablet ── */
+
+
+/* ════════════════════════════════════════════════════════════
+   15. RESPONSIVE — LAPTOP AND UP  (≥ 1024px)
+   ════════════════════════════════════════════════════════════ */
+@media (min-width: 1024px) {
+
+  /* ── Layout: switch to sidebar grid ── */
+  .main_container {
+    display: grid;
+    grid-template-columns: 0.2fr 0.8fr;
+    grid-auto-flow: dense;
+    gap: 0;
+  }
+
+  /* ── Navigation — vertical sidebar ── */
+  .main_nav_container {
+    display: block;              /* stack header + menus vertically */
+    padding: 20px;
+    margin: 20px;
+    font-size: 1.4rem;
+    height: 90dvh;
+    border-radius: var(--radius-lg);
+    background: var(--glass-bg);
+  }
+
+  .nav_menus {
+    flex-direction: column;
+    align-items: flex-start;
+    margin-top: 3rem;
+    gap: 1rem;
+  }
+
+  .nav_menus > a { padding: 10px 50px 10px 15px; }
+
+  .nav_menus > .active_menu { background-color: var(--active-nav-bg); }
+
+  /* ── Music grid ── */
+  .main_music_section {
+    margin: 20px;
+    height: 90dvh;
+    gap: 40px;
+    align-items: center;
+    flex-wrap: wrap;
+    overflow: scroll;
+    background: transparent;
+    backdrop-filter: blur(2rem);
+  }
+
+  .music_section_block {
+    width: 220px;
+    height: 250px;
+    gap: 5px;
+  }
+
+  .image_container { width: 220px; }
+
+  .image_container > .image_top { width: 180px; }
+
+  .image_container.active::after {
+    top: 2%; left: -4%;
+    width: 100%; height: 100%;
+    border-radius: 0;
+  }
+
+  .cover_art { width: 200px; }
+
+  /* ── Search ── */
+  .search_container {
+    padding: 20px;
+    margin: 20px;
+    height: 90dvh;
+    gap: 40px;
+    flex-direction: column;
+    backdrop-filter: blur(2rem);
+  }
+
+  .search_music_container {
+    padding: 0;
+    max-height: 80dvh;
+    gap: 40px;
+    justify-content: flex-start;
+  }
+
+  /* ── Lyrics ── */
+  .main_lyrics_container { padding: 0; }
+
+  .lyrics_container .active_line > span { font-size: 2.5rem; }
+
+  /* ── Media popup — wider, offset for sidebar ── */
+  .media_player_popup {
+    width: 50%;
+    margin-left: 300px;
+    margin-top: -10rem;
+    background: var(--glass-bg);
+    border-radius: var(--radius-lg);
+  }
+
+  .popup_middle {
+    min-width: 400px;
+    margin-left: -5rem;
+  }
+
+  .progress_whole_wide { width: 400px; }
+
+  /* Lyrics view hides sidebar offset */
+  .media_player_popup.lrc_mode {
+    margin-left: 0;
+  }
+
+  body::before {
+    filter: blur(500rem);
+    opacity: 0.7;
+  }
+
+}
+/* ── END laptop ── */

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- ============================================================
+     STOIC PLAY — index.html
+     Responsive: mobile / tablet / laptop-and-up
+     All breakpoints handled via CSS (styles.css)
+     ============================================================ -->
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- ── Favicons ── -->
+  <link rel="icon"              type="image/x-icon"  href="./src/img/ico/favicon.ico">
+  <link rel="icon"              type="image/png"     sizes="16x16"  href="./src/img/ico/favicon-16x16.png">
+  <link rel="icon"              type="image/png"     sizes="32x32"  href="./src/img/ico/favicon-32x32.png">
+  <link rel="apple-touch-icon"                       sizes="180x180" href="./src/img/ico/apple-touch-icon.png">
+  <link rel="icon"              type="image/png"     sizes="192x192" href="./src/img/ico/android-chrome-192x192.png">
+  <link rel="icon"              type="image/png"     sizes="512x512" href="./src/img/ico/android-chrome-512x512.png">
+
+  <!-- ── Stylesheet ── -->
+  <link rel="stylesheet" href="./src/css/styles.css">
+
+  <title>STOIC PLAY</title>
+</head>
+
+<body>
+
+  <!-- ── Layered background blobs (pure CSS animated, z-index: -1) ── -->
+  <div class="bg_blob bg_blob_a" aria-hidden="true"></div>
+  <div class="bg_blob bg_blob_b" aria-hidden="true"></div>
+  <div class="bg_blob bg_blob_c" aria-hidden="true"></div>
+
+  <!-- ── Hidden audio engine ── -->
+  <audio id="audio" src="" style="display:none;"></audio>
+
+  <!-- ================================================================
+       MAIN CONTAINER  (nav + music grid + search)
+       ================================================================ -->
+  <div class="main_container" id="main_container">
+
+    <!-- ── Sidebar / Top-bar navigation ── -->
+    <div class="main_nav_container">
+      <div class="nav_cont_header">
+        <a href="./">&capand; STOIC PLAY</a>
+      </div>
+
+      <div class="nav_menus">
+        <a id="search_button">
+          <i class="fa-solid fa-magnifying-glass" style="color:#fff;"></i>
+          <span class="nav_label">Search</span>
+        </a>
+        <a id="home_button" class="active_menu">
+          <i class="fa-regular fa-house" style="color:#fff;"></i>
+          <span class="nav_label">Home</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- ── Music grid ── -->
+    <div class="main_music_section" id="main_music_section"></div>
+
+    <!-- ── Search panel ── -->
+    <div class="search_container" id="search_container">
+      <div class="input_box_cont">
+        <input type="text" id="search_box" placeholder="Search">
+      </div>
+      <div class="search_music_container" id="search_music_container"></div>
+    </div>
+
+  </div>
+  <!-- ── END main_container ── -->
+
+
+  <!-- ================================================================
+       LYRICS VIEW  (full-screen, toggled by lyrics button)
+       ================================================================ -->
+  <div class="main_lyrics_container" id="main_lyrics_container">
+    <div id="lyrics_container" class="lyrics_container">
+      <section class="inactive_line">
+        <span class="inactive_lrc">NOTHING IS BEING PLAYED</span>
+      </section>
+      <section class="active_line">
+        <span class="active_lrc">NOTHING IS BEING PLAYED</span>
+      </section>
+      <section class="inactive_line">
+        <span class="inactive_lrc">NOTHING IS BEING PLAYED</span>
+      </section>
+    </div>
+  </div>
+  <!-- ── END lyrics view ── -->
+
+
+  <!-- ================================================================
+       MEDIA PLAYER POPUP  (fixed bottom bar)
+       ================================================================ -->
+  <div class="center_media_popup">
+    <div class="media_player_popup" id="media_player_popup">
+
+      <!-- Loading indicator — shown while audio is buffering -->
+      <div class="popup_loader" id="popup_loader">
+        <div class="loader_ring"></div>
+      </div>
+
+      <!-- Left: cover + track info -->
+      <div class="popup_left">
+        <img src="./src/img/play.png" alt="" id="cvr_popup">
+        <p>
+          <span class="top_text"  id="title_popup">...........</span>
+          <span class="sub_text"  id="artist_popup">...........</span>
+        </p>
+      </div>
+
+      <!-- Time display — own row on mobile, hidden on tablet+ (time moves into popup_middle) -->
+      <div class="time_show_mobile" id="time_update">
+        <span><span id="curr_time">00:00</span> / <span id="total_duration">00:00</span></span>
+      </div>
+
+      <!-- Middle: controls + progress (row on mobile, column on tablet+) -->
+      <div class="popup_middle">
+        <div class="play_pause_shit">
+          <p class="prev" id="prev">
+            <i class="fa-solid fa-angle-left"  style="color:#fff;"></i>
+          </p>
+          <p id="play"  class="play">
+            <i class="fa-solid fa-play"         style="color:#fff;"></i>
+          </p>
+          <p id="pause" class="pause">
+            <i class="fa-solid fa-pause"        style="color:#fff;"></i>
+          </p>
+          <!-- Progress bar (mobile — inline between buttons) -->
+          <div class="progress_whole" id="progress_whole">
+            <div class="progress_show" id="prog_show"></div>
+          </div>
+          <p class="next" id="next">
+            <i class="fa-solid fa-angle-right"  style="color:#fff;"></i>
+          </p>
+          <p id="lyrics_button">
+            <i class="fa-solid fa-microphone-lines" style="color:#fff;"></i>
+          </p>
+        </div>
+
+        <!-- Wide progress bar (tablet / laptop — below controls row) -->
+        <div class="progress_whole_wide" id="progress_whole_wide">
+          <div class="progress_show_wide" id="prog_show_wide"></div>
+        </div>
+
+        <!-- Time display clone — visible on tablet+ only -->
+        <div class="time_show_wide">
+          <span><span id="curr_time_wide">00:00</span> / <span id="total_duration_wide">00:00</span></span>
+        </div>
+      </div>
+
+      <!-- Right: lyrics toggle (tablet+ only) -->
+      <div class="popup_right">
+        <p id="lyrics_button_desktop">
+          <i class="fa-solid fa-microphone-lines" style="color:#fff;"></i>
+        </p>
+      </div>
+
+    </div>
+  </div>
+  <!-- ── END media player popup ── -->
+
+
+  <!-- ================================================================
+       SCRIPTS
+       ================================================================ -->
+  <script src="./src/js/stoicmess.js"></script>
+  <script src="./src/js/icons.js"></script>
+  <script src="./src/js/icons2.js"></script>
+  <script src="./src/js/color-thief.umd.js"></script>
+  <script src="./src/js/script.js"></script>
+
+</body>
+</html>
